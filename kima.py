@@ -1,5 +1,5 @@
 import irc.bot, irc.client, ssl, time
-
+#test
 class IRCBot(irc.bot.SingleServerIRCBot):
     def __init__(self, server, port, channel, nickname, username):
         ssl_factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
@@ -29,6 +29,8 @@ class IRCBot(irc.bot.SingleServerIRCBot):
     def reconnect(self):
         server, port = self.connection.server_list[0]
         self.connection.connect(server, port, self.connection.nick, self.connection.username)
+    
+    def insult(self):
 
 if __name__ == "__main__":
     server = "irc.twistednet.org"
