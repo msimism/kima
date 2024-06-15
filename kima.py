@@ -93,7 +93,7 @@ class IRCBot(irc.bot.SingleServerIRCBot):
         
 
 if __name__ == "__main__":
-    server = "irc.twistednet.org"
+    server = "irc.paniked.net"
     port = 6697  # SSL port
     channel = "#paniked"
     nickname = "kima"
