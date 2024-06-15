@@ -7,9 +7,11 @@ I will be slowly adding functionality and having fun with it.
 
 
 ## Recent Changes
-
-- **Added Remarks class**: Integrated insult and compliment functionality into the IRCBot.
-- **Moved compliments and insults**: Moved the compliments and insults into the `/text/` directory for easier editing and adding new content.
+- **Refactored Code for Modularity**: The main code has been refactored to handle more modular coding.
+  - **Additions moved to `/includes/`**: New functionality has been moved to the `/includes/` directory.
+  - **Split Functions**: Functions have been split into their own modules for better editing and maintainability.
+- **Added Remarks Handling**: Integrated the `Remarks` class to handle insults and compliments.
+- **Moved Text Files**: Moved compliments, insults, and quotes into the `/text/` directory for easier editing and adding new content.
 
 ## Getting Started
 
