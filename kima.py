@@ -1,106 +1,80 @@
-import irc.bot, irc.client, ssl, time, re
-import random, sys
-#test
-class Remarks:
-    def __init__(self):
-        with open("/text/insults.txt", "r") as insultfile:
-            self.insults = [line.strip() for line in insultfile.readlines()]
-        with open("/text/compliments.txt", "r") as complimentsfile:
-            self.compliments = [line.strip() for line in complimentsfile.readlines()]
-            
-        
-    def load(self, file):
-        with open(file, "r") as new_insultfile:
-            new_insults = [line.strip() for line in new_insultfile.readlines()]
-            self.insults.extend(new_insults)
-        with open(file, "r") as new_complimentsfile:
-            new_compliments = [line.strip() for line in new_complimentsfile.readlines()]
-            self.compliments.extend(new_compliments)
+""" Module Imports """
+from includes.command_handler import CommandHandler
+from includes.remarks import Remarks
+from includes.quotes import Quotes
+from includes.troll import Troll
+""" Module Imports """
 
-    def random_insult(self):
-        return random.choice(self.insults)
-        
-    def random_compliment(self):
-        return random.choice(self.compliments)
-    
-    def insult(self, nick):
-        random_insult = self.random_insult()
-        return f"{nick}, {random_insult}"
-    
-    def compliment(self, nick):
-        random_compliment = self.random_compliment()
-        return f"{nick}, {random_compliment}"
+""" Library Imports """
+import irc.bot
+import ssl
+import time
+import sys
+import logging
+import signal
+""" Library Imports """
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-
-    
 class IRCBot(irc.bot.SingleServerIRCBot):
-    def __init__(self, server, port, channel, nickname, username):
+    def __init__(self, server, port, channels, nickname, username):
         ssl_factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, username, connect_factory=ssl_factory)
-        self.channel = channel
+        self.channel_list = channels
+        self.channels = {}  # This dictionary will hold the channel objects
         self.remarks = Remarks()
-        
+        self.troll = Troll()
+        self.quotes = Quotes()
+        self.command_handler = CommandHandler(self.remarks, self.quotes, self.troll)
 
     def on_welcome(self, connection, event):
-        connection.join(self.channel)
-
-    #def on_join(self, connection, event):
-    #    connection.privmsg(self.channel, "Hi Panik! I'm your biggest fan")
+        for channel in self.channel_list:
+            logging.info(f"Joining {channel}")
+            connection.join(channel)
 
     def on_pubmsg(self, connection, event):
         message = event.arguments[0]
         sender = irc.client.NickMask(event.source).nick
         channel = event.target
-        
-        # Regular expression pattern to match words
-        pattern = r'\b[A-Za-z]+\b'
-        
-        if "!hello" in message.lower():
-            names = re.findall(pattern, message)
-            if len(names) > 1:  # to ensure we have names after !hello
-                names_list = ', '.join(names[1:])  # Skip the command itself
-                self.hello(connection, names_list)
-            else:
-                connection.privmsg(self.channel, "No names found to greet.")
-        elif message.lower().startswith("!insult"):
-            parts = message.split()
-            if len(parts) > 1:
-                nick = parts[1]
-                insult_message = self.remarks.insult(nick)
-                connection.privmsg(self.channel, insult_message)
-        elif message.lower().startswith("!compliment"):
-            parts = message.split()
-            if len(parts) > 1:
-                nick = parts[1]
-                insult_message = self.remarks.compliment(nick)
-                connection.privmsg(self.channel, insult_message)
-        else:
-            print(f"{channel} - {sender} - {message}")
-
+        logging.info(f"Message from {sender} in {channel}: {message}")
+        self.command_handler.handle_message(connection, channel, sender, message)
 
     def on_disconnect(self, connection, event):
-        print("Disconnected from the server. Reconnecting...")
+        logging.warning("Disconnected from the server. Reconnecting...")
         time.sleep(10)
         self.reconnect()
 
     def reconnect(self):
         server, port = self.connection.server_list[0]
-        self.connection.connect(server, port, self.connection.nick, self.connection.username)
-    
+        try:
+            self.connection.connect(server, port, self.connection.nick, self.connection.username)
+        except Exception as e:
+            logging.error(f"Reconnection failed: {e}")
+            time.sleep(10)
+            self.reconnect()
+
     def hello(self, connection, names_list):
-        connection.privmsg(self.channel, f"hello {names_list}")
-        
+        for channel in self.channel_list:
+            connection.privmsg(channel, f"hello {names_list}")
+
+def graceful_shutdown(signal, frame):
+    logging.info("Shutting down gracefully...")
+    sys.exit(0)
 
 if __name__ == "__main__":
     server = "irc.twistednet.org"
     port = 6697  # SSL port
-    channel = "#paniked"
+    channels = ["#twisted", "#bots"]
     nickname = "kima"
     username = "black"
 
-    bot = IRCBot(server, port, channel, nickname, username)
+    bot = IRCBot(server, port, channels, nickname, username)
+    
+    signal.signal(signal.SIGINT, graceful_shutdown)
+    signal.signal(signal.SIGTERM, graceful_shutdown)
+
     try:
         bot.start()
-    except KeyboardInterrupt:
-        sys.exit("Bye")
+    except Exception as e:
+        logging.error(f"Bot encountered an error: {e}")
+        sys.exit(1)
