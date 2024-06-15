@@ -22,7 +22,7 @@ I will be slowly adding functionality and having fun with it.
 
   ```bash
   pip install irc
-
+ 
 ##### Running the Bot
 
 Clone this repository:
@@ -38,4 +38,4 @@ Run the bot:
 python kima.py
 ```
 
-
+###### Final

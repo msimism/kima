@@ -21,7 +21,7 @@ class IRCBot(irc.bot.SingleServerIRCBot):
         ssl_factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, username, connect_factory=ssl_factory)
         self.channel_list = channels
-        self.channels = {}  # This dictionary will hold the channel objects
+        self.channels = {}  
         self.remarks = Remarks()
         self.troll = Troll()
         self.quotes = Quotes()
