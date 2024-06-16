@@ -2,6 +2,7 @@
 from includes.command_handler import CommandHandler
 from includes.remarks import Remarks
 from includes.quotes import Quotes
+from includes.jokes import Jokes
 from includes.troll import Troll
 """ Module Imports """
 
@@ -17,15 +18,17 @@ import signal
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class IRCBot(irc.bot.SingleServerIRCBot):
-    def __init__(self, server, port, channels, nickname, username):
+    def __init__(self, server, port, channels, nickname, username, command_prefix="."):
         ssl_factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, username, connect_factory=ssl_factory)
         self.channel_list = channels
-        self.channels = {}  
+        self.channels = {}
         self.remarks = Remarks()
         self.troll = Troll()
         self.quotes = Quotes()
-        self.command_handler = CommandHandler(self.remarks, self.quotes, self.troll)
+        self.jokes = Jokes()
+        self.command_handler = CommandHandler(self.remarks, self.quotes, self.jokes, self.troll, command_prefix)
+        logging.info(f"IRCBot initialized with command prefix: {command_prefix}")
 
     def on_welcome(self, connection, event):
         for channel in self.channel_list:
@@ -67,8 +70,10 @@ if __name__ == "__main__":
     channels = ["#twisted", "#bots"]
     nickname = "kima"
     username = "black"
+    command_prefix = "."  # Set this to the desired prefix, e.g., ".", "$", "&", etc.
 
-    bot = IRCBot(server, port, channels, nickname, username)
+    logging.info(f"Starting IRCBot with command prefix: {command_prefix}")
+    bot = IRCBot(server, port, channels, nickname, username, command_prefix)
     
     signal.signal(signal.SIGINT, graceful_shutdown)
     signal.signal(signal.SIGTERM, graceful_shutdown)

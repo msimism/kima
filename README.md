@@ -1,41 +1,59 @@
-# Kima - My Personal IRC Bot Project
+# Kima - IRC Bot
 
-Welcome to Kima, my personal IRC bot project.  
-I will be slowly adding functionality and having fun with it. 
+This is Kima, my personal IRC bot project. 
+I will slowly add functionality and have fun with it. Visit us at `irc.paniked.net #paniked` for further discussion.
 
+## Features
 
+- **Insults**: Random insults generated using the `Remarks` class.
+- **Compliments**: Random compliments generated using the `Remarks` class.
+- **Quotes**: Manage quotes with commands to add, remove, list, read, and get a random quote.
+- **Jokes**: Manage jokes with commands to add, remove, list, read, and get a random joke.
+- **Trolling**: Random troll messages generated using the `Troll` class.
 
+## Commands
 
-## Recent Changes
-- **Refactored Code for Modularity**: The main code has been refactored to handle more modular coding.
-  - **Additions moved to `/includes/`**: New functionality has been moved to the `/includes/` directory.
-  - **Split Functions**: Functions have been split into their own modules for better editing and maintainability.
-- **Added Remarks Handling**: Integrated the `Remarks` class to handle insults and compliments.
-- **Moved Text Files**: Moved compliments, insults, and quotes into the `/text/` directory for easier editing and adding new content.
+### Insults
+- `.insult <nick>`: Insult the specified user.
 
-## Getting Started
+### Compliments
+- `.compliment <nick>`: Compliment the specified user.
 
-#### Prerequisites
+### Quotes
+- `.quotes`: Get a random quote.
+- `.quotes list`: List all quotes.
+- `.quotes read <#>`: Read a specific quote by ID.
+- `.quotes del <#>`: Delete a quote by ID.
+- `.quotes add <quote> - <author>`: Add a new quote.
 
-- Python 3.x
-- `irc` library: You can install it using pip
+### Jokes
+- `.jokes`: Get a random joke.
+- `.jokes list`: List all jokes.
+- `.jokes read <#>`: Read a specific joke by ID.
+- `.jokes del <#>`: Delete a joke by ID.
+- `.jokes add <joke>`: Add a new joke.
 
-  ```bash
-  pip install irc
- 
-##### Running the Bot
+## Installation
 
-Clone this repository:
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/yourusername/kima.git
+    ```
+2. Navigate to the project directory:
+    ```bash
+    cd kima
+    ```
+3. Install the required dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-```bash
-git clone https://github.com/msimism/kima.git
-cd kima
-```
+## Configuration
+
+Edit the `main.py` file to set your server, port, channels, nickname, username, and command prefix.
+
+## Usage
 
 Run the bot:
-
 ```bash
 python kima.py
-```
-
-
