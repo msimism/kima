@@ -1,3 +1,4 @@
+import json
 import random
 
 class Quotes:
@@ -9,21 +10,20 @@ class Quotes:
     def load_quotes_from_file(self):
         try:
             with open("text/quotes.json", "r") as quotefile:
-                jokes = json.load(quotefile)
-                for joke in jokes:
-                    self.quotes[joke['id']] = joke['joke']
-                    if joke['id'] >= self.next_id:
-                        self.next_id = joke['id'] + 1
+                quotes = json.load(quotefile)
+                for quote in quotes:
+                    self.quotes[quote['id']] = (quote['quote'], quote['author'])
+                    if quote['id'] >= self.next_id:
+                        self.next_id = quote['id'] + 1
         except FileNotFoundError:
             print("The quotes file was not found.")
         except json.JSONDecodeError:
             print("Error parsing the quotes file. Ensure it is properly formatted JSON.")
 
     def add(self, quote, author):
-        if (quote, author) not in self.quotes.values():
-            self.quotes[self.next_id] = (quote, author)
-            self.next_id += 1
-            self.save_quotes_to_file()
+        self.quotes[self.next_id] = (quote, author)
+        self.next_id += 1
+        self.save_quotes_to_file()
 
     def remove(self, quote_id):
         if quote_id in self.quotes:
@@ -31,7 +31,7 @@ class Quotes:
             self.save_quotes_to_file()
 
     def list(self):
-        return "\n".join([f"{quote_id}: {quote} - {author}" for quote_id, (quote, author) in self.quotes.items()])
+        return "\n\n".join([f"{quote_id}: {quote} - {author}" for quote_id, (quote, author) in self.quotes.items()])
 
     def get_quote_by_id(self, quote_id):
         if quote_id in self.quotes:
@@ -46,5 +46,5 @@ class Quotes:
 
     def save_quotes_to_file(self):
         with open("text/quotes.json", "w") as quotefile:
-            jokes = [{'id': quote_id, 'quote': quote, 'author': author} for quote_id, (quote, author) in self.quotes.items()]
-            json.dump(jokes, quotefile, indent=4)
+            quotes = [{'id': quote_id, 'quote': quote, 'author': author} for quote_id, (quote, author) in self.quotes.items()]
+            json.dump(quotes, quotefile, indent=4)

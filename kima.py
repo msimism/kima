@@ -3,7 +3,8 @@ from includes.command_handler import CommandHandler
 from includes.remarks import Remarks
 from includes.quotes import Quotes
 from includes.jokes import Jokes
-from includes.troll import Troll
+from includes.troll import InsultTroll, ComplimentTroll, FloodTroll
+from includes.help import Help
 """ Module Imports """
 
 """ Library Imports """
@@ -15,7 +16,7 @@ import logging
 import signal
 """ Library Imports """
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class IRCBot(irc.bot.SingleServerIRCBot):
     def __init__(self, server, port, channels, nickname, username, command_prefix="."):
@@ -24,10 +25,13 @@ class IRCBot(irc.bot.SingleServerIRCBot):
         self.channel_list = channels
         self.channels = {}
         self.remarks = Remarks()
-        self.troll = Troll()
+        self.insult_troll = InsultTroll(self.remarks)
+        self.compliment_troll = ComplimentTroll(self.remarks)
+        self.flood_troll = FloodTroll()
         self.quotes = Quotes()
         self.jokes = Jokes()
-        self.command_handler = CommandHandler(self.remarks, self.quotes, self.jokes, self.troll, command_prefix)
+        self.help = Help(command_prefix)
+        self.command_handler = CommandHandler(self.remarks, self.quotes, self.jokes, self.insult_troll, self.compliment_troll, self.flood_troll, self.help, command_prefix)
         logging.info(f"IRCBot initialized with command prefix: {command_prefix}")
 
     def on_welcome(self, connection, event):
@@ -41,6 +45,13 @@ class IRCBot(irc.bot.SingleServerIRCBot):
         channel = event.target
         logging.info(f"Message from {sender} in {channel}: {message}")
         self.command_handler.handle_message(connection, channel, sender, message)
+
+    def on_privnotice(self, connection, event):
+        message = event.arguments[0]
+        sender = irc.client.NickMask(event.source).nick
+        target = event.target
+        logging.info(f"Notice from {sender} to {target}: {message}")
+        self.command_handler.handle_message(connection, sender, sender, message)
 
     def on_disconnect(self, connection, event):
         logging.warning("Disconnected from the server. Reconnecting...")
