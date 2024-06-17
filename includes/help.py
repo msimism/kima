@@ -1,36 +1,37 @@
+""" Help module to handle help messages """
+
+import logging
+
+logger = logging.getLogger('includes.help')
+
 class Help:
-    def __init__(self, command_prefix="."):
-        self.command_prefix = command_prefix
-        self.commands = {
-            "insult": f"{self.command_prefix}insult <nick>: Insult the specified user.",
-            "compliment": f"{self.command_prefix}compliment <nick>: Compliment the specified user.",
-            "quotes": [
-                f"{self.command_prefix}quotes: Get a random quote.",
-                f"{self.command_prefix}quotes list: List all quotes.",
-                f"{self.command_prefix}quotes read <#>: Read a specific quote by ID.",
-                f"{self.command_prefix}quotes del <#>: Delete a quote by ID.",
-                f"{self.command_prefix}quotes add <quote> - <author>: Add a new quote."
-            ],
-            "jokes": [
-                f"{self.command_prefix}jokes: Get a random joke.",
-                f"{self.command_prefix}jokes list: List all jokes.",
-                f"{self.command_prefix}jokes read <#>: Read a specific joke by ID.",
-                f"{self.command_prefix}jokes del <#>: Delete a joke by ID.",
-                f"{self.command_prefix}jokes add <joke>: Add a new joke."
-            ],
-            "troll": [
-                f"{self.command_prefix}troll add <nick>: Add a user to the trolling list.",
-                f"{self.command_prefix}troll remove <nick>: Remove a user from the trolling list."
-            ],
-            "help": f"{self.command_prefix}help: Display this help message."
-        }
+    def __init__(self):
+        self.help_message = self.load_help_message()
+        logger.info("Help initialized.")
+
+    def load_help_message(self):
+        return """
+        Available commands:
+        - .insult [nick]: Insult a user.
+        - .compliment [nick]: Compliment a user.
+        - .quotes: Get a random quote.
+        - .quotes list: List all quotes.
+        - .quotes read [id]: Read a specific quote.
+        - .quotes add [quote]: Add a new quote.
+        - .quotes del [id]: Delete a specific quote.
+        - .quotes search [keyword]: Search quotes by content.
+        - .quotes search -by [author]: Search quotes by author.
+        - .jokes: Get a random joke.
+        - .jokes list: List all jokes.
+        - .jokes read [id]: Read a specific joke.
+        - .jokes add [joke]: Add a new joke.
+        - .jokes del [id]: Delete a specific joke.
+        - .troll add [nick]: Add a user to the troll list.
+        - .troll remove [nick]: Remove a user from the troll list.
+        - .troll list: List all users being trolled.
+        - .help: Show this help message.
+        """
 
     def get_help_message(self):
-        help_message = "Available commands:\n"
-        for command, description in self.commands.items():
-            if isinstance(description, list):
-                for desc in description:
-                    help_message += f"{desc}\n"
-            else:
-                help_message += f"{description}\n"
-        return help_message
+        logger.debug("Fetching help message.")
+        return self.help_message

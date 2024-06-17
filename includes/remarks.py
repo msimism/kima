@@ -1,31 +1,48 @@
+""" Remarks module to handle insults and compliments """
+
+import logging
 import random
+import json
+
+logger = logging.getLogger('includes.remarks')
 
 class Remarks:
     def __init__(self):
-        with open("text/insults.txt", "r") as insultfile:
-            self.insults = [line.strip() for line in insultfile.readlines()]
-        with open("text/compliments.txt", "r") as complimentsfile:
-            self.compliments = [line.strip() for line in complimentsfile.readlines()]
-            
+        self.insults = self.load_remarks("data/remarks/insults.json")
+        logger.debug(f"Loaded insults: {self.insults}")
         
-    def load(self, file):
-        with open(file, "r") as new_insultfile:
-            new_insults = [line.strip() for line in new_insultfile.readlines()]
-            self.insults.extend(new_insults)
-        with open(file, "r") as new_complimentsfile:
-            new_compliments = [line.strip() for line in new_complimentsfile.readlines()]
-            self.compliments.extend(new_compliments)
+        self.compliments = self.load_remarks("data/remarks/compliments.json")
+        logger.debug(f"Loaded compliments: {self.compliments}")
+        
+        logger.info("Remarks initialized.")
+
+    def load_remarks(self, file_path):
+        try:
+            with open(file_path, "r") as file:
+                return json.load(file)
+        except FileNotFoundError:
+            logger.warning(f"{file_path} not found. Starting with an empty list.")
+            return []
+        except json.JSONDecodeError:
+            logger.error(f"{file_path} is not a valid JSON file. Starting with an empty list.")
+            return []
 
     def random_insult(self):
-        return random.choice(self.insults)
+        insult = random.choice(self.insults)
+        logger.debug(f"Selected random insult: {insult}")
+        return insult
         
     def random_compliment(self):
-        return random.choice(self.compliments)
+        compliment = random.choice(self.compliments)
+        logger.debug(f"Selected random compliment: {compliment}")
+        return compliment
     
     def insult(self, nick):
         random_insult = self.random_insult()
+        logger.debug(f"Generated insult for {nick}: {random_insult}")
         return f"{nick}, {random_insult}"
     
     def compliment(self, nick):
         random_compliment = self.random_compliment()
+        logger.debug(f"Generated compliment for {nick}: {random_compliment}")
         return f"{nick}, {random_compliment}"

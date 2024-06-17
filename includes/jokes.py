@@ -1,48 +1,79 @@
+""" Jokes module to handle jokes management """
+
 import json
 import random
+import logging
+import threading
+
+logger = logging.getLogger('includes.jokes')
 
 class Jokes:
-    def __init__(self):
-        self.jokes = {}
-        self.next_id = 1
+    def __init__(self, file_path="data/jokes/jokes.json"):
+        self.file_path = file_path
+        self.jokes = []
         self.load_jokes_from_file()
+        self.lock = threading.Lock()
 
     def load_jokes_from_file(self):
         try:
-            with open("text/jokes.json", "r") as joke_file:
-                jokes = json.load(joke_file)
-                for joke in jokes:
-                    self.jokes[joke['id']] = joke['joke']
-                    if joke['id'] >= self.next_id:
-                        self.next_id = joke['id'] + 1
+            with open(self.file_path, "r") as file:
+                jokes_data = json.load(file)
+                if isinstance(jokes_data, list):
+                    self.jokes = jokes_data
+                else:
+                    logger.error(f"Invalid format in {self.file_path}, expected a list.")
+                    self.jokes = []
+            logger.debug(f"Jokes loaded: {self.jokes}")
         except FileNotFoundError:
-            print("The jokes file was not found.")
+            logger.warning(f"{self.file_path} not found. Starting with an empty joke list.")
+            self.jokes = []
         except json.JSONDecodeError:
-            print("Error parsing the jokes file. Ensure it is properly formatted JSON.")
+            logger.error(f"{self.file_path} is not a valid JSON file. Starting with an empty joke list.")
+            self.jokes = []
 
     def add(self, joke):
-        self.jokes[self.next_id] = joke
-        self.next_id += 1
+        if not joke:
+            logger.warning("Joke must not be empty.")
+            return "Joke must not be empty."
+        new_id = max((j['id'] for j in self.jokes), default=0) + 1
+        new_joke = {"id": new_id, "joke": joke}
+        self.jokes.append(new_joke)
         self.save_jokes_to_file()
+        logger.info(f"Joke added: {new_id} - {joke}")
+        return f"Joke added: {new_id}"
 
     def remove(self, joke_id):
-        if joke_id in self.jokes:
-            del self.jokes[joke_id]
-            self.save_jokes_to_file()
-
-    def list(self):
-        return "\n\n".join([f"{joke_id}: {joke}" for joke_id, joke in self.jokes.items()])
-
-    def get_joke_by_id(self, joke_id):
-        if joke_id in self.jokes:
-            return f"{joke_id}: {self.jokes[joke_id]}"
+        joke_id = int(joke_id)
+        for joke in self.jokes:
+            if joke['id'] == joke_id:
+                self.jokes.remove(joke)
+                self.save_jokes_to_file()
+                logger.info(f"Joke {joke_id} removed.")
+                return f"Joke {joke_id} removed."
+        logger.warning(f"Joke {joke_id} not found.")
         return "Joke not found."
 
+    def list(self):
+        return "\n".join(f"{j['id']}: {j['joke']}" for j in self.jokes)
+
     def get_random_joke(self):
-        joke_id = random.choice(list(self.jokes.keys()))
-        return f"{joke_id}: {self.jokes[joke_id]}"
+        if self.jokes:
+            joke = random.choice(self.jokes)
+            return f"{joke['id']}: {joke['joke']}"
+        return "No jokes available."
+
+    def get_joke_by_id(self, joke_id):
+        joke_id = int(joke_id)
+        for joke in self.jokes:
+            if joke['id'] == joke_id:
+                return f"{joke['id']}: {joke['joke']}"
+        return "Joke not found."
 
     def save_jokes_to_file(self):
-        with open("text/jokes.json", "w") as joke_file:
-            jokes = [{'id': joke_id, 'joke': joke} for joke_id, joke in self.jokes.items()]
-            json.dump(jokes, joke_file, indent=4)
+        with self.lock:
+            try:
+                with open(self.file_path, "w") as file:
+                    json.dump(self.jokes, file, indent=4)
+                logger.debug("Jokes saved successfully.")
+            except IOError as e:
+                logger.error(f"Error saving jokes: {e}")
